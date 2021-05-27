@@ -1,0 +1,20 @@
+body {
+  background-color: rgb(247, 248, 250)!important;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  background-image: url('./assets/background.svg');
+  background-attachment: fixed;
+  background-position-y: -15%;
+  background-position-x: 10%;
+  background-repeat: no-repeat;
+}
+
+html, body {
+  overscroll-behavior: none;
+}
+
+p {
+  margin: 0;
+  padding: 0;
+}
