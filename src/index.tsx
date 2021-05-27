@@ -44,7 +44,7 @@ const initNear = async () => {
     window.walletConnection.account(),
     RELAY_CONTRACT_NAME,
     {
-      viewMethods: ['get_bridge_token'],
+      viewMethods: ['get_bridge_token', 'get_num_appchains', 'get_appchain'],
       changeMethods: []
     }
   );

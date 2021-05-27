@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Box, Typography, Fade, Paper, List, ListItem, ListItemText, ListItemAvatar, Avatar } from '@material-ui/core';
+import { 
+  Box, Typography, Fade, Paper, List, ListItem, ListItemText, 
+  ListItemAvatar, Avatar, Divider 
+} from '@material-ui/core';
 
 import { makeStyles, createStyles, Theme } from '@material-ui/core/styles';
 
@@ -30,16 +33,25 @@ const SelectAppChain = ({
   useEffect(() => {
     const init = async () => {
       setIsLoading(true);
-      setTimeout(() => {
-        setAppchainList([{
-          id: 0,
-          name: 'Easydeal'
-        }, {
-          id: 1,
-          name: 'Barnacle'
-        }]);
-        setIsLoading(false);
-      }, 500);
+
+      const count = await window.relayContract.get_num_appchains();
+      const promises = [];
+      for (let i = 0; i < count; i++) {
+        promises.push(
+          window.relayContract.get_appchain({
+            appchain_id: i,
+          })
+        );
+      }
+      const appchains = await Promise.all(promises);
+      
+      if (appchains && appchains.length) {
+        setAppchainList(appchains.map(({ id, appchain_name, status }) => ({
+          id, status,
+          name: appchain_name.substr(0, 1).toUpperCase() + appchain_name.substr(1)
+        })));
+      }
+      setIsLoading(false);
       
     }
     init();
@@ -58,14 +70,18 @@ const SelectAppChain = ({
             <List>
               {
                 appchainList.map((chain, idx) => {
+                  const isActive = chain.status == 'Active';
                   return (
-                    <ListItem button onClick={() => onSelect(chain)} key={`appchain-${idx}`}>
+                    <>
+                    <ListItem button disabled={!isActive} onClick={() => onSelect(chain)} key={`appchain-${idx}`}>
                       <ListItemAvatar>
-                        <Avatar style={{ width: 28, height: 28 }}>{idx}</Avatar>
+                        <Avatar style={{ width: 26, height: 26, background: isActive ? '#53ab90' : '' }}>{idx}</Avatar>
                       </ListItemAvatar>
                       <ListItemText>{chain.name}</ListItemText>
                       <ChevronRight />
                     </ListItem>
+                    { idx != appchainList.length - 1 && <Divider /> }
+                    </>
                   );
                 })
               }
