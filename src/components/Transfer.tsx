@@ -60,7 +60,7 @@ const Transfer = ({
     const init = async () => {
       setIsLoading(true);
       const promises = tokenContractList.map(id => (
-        window.relayContract.get_bridge_token({
+        window.contract.get_bridge_token({
           token_id: id
         }))
       );

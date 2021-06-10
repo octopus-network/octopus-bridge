@@ -34,21 +34,17 @@ const SelectAppChain = ({
     const init = async () => {
       setIsLoading(true);
 
-      const count = await window.relayContract.get_num_appchains();
-      const promises = [];
-      for (let i = 0; i < count; i++) {
-        promises.push(
-          window.relayContract.get_appchain({
-            appchain_id: i,
-          })
-        );
-      }
-      const appchains = await Promise.all(promises);
+      const appchains = await window.contract.get_appchains({
+        from_index: 0,
+        limit: 20
+      });
+
+      console.log(appchains);
       
       if (appchains && appchains.length) {
-        setAppchainList(appchains.map(({ id, appchain_name, status }) => ({
-          id, status,
-          name: appchain_name.substr(0, 1).toUpperCase() + appchain_name.substr(1)
+        setAppchainList(appchains.map(({ id, status }, idx) => ({
+          id: idx, status,
+          name: id.substr(0, 1).toUpperCase() + id.substr(1)
         })));
       }
       setIsLoading(false);
@@ -72,8 +68,8 @@ const SelectAppChain = ({
                 appchainList.map((chain, idx) => {
                   const isActive = chain.status == 'Active';
                   return (
-                    <>
-                    <ListItem button disabled={!isActive} onClick={() => onSelect(chain)} key={`appchain-${idx}`}>
+                    <div key={`appchain-${idx}`}>
+                    <ListItem button disabled={!isActive} onClick={() => onSelect(chain)}>
                       <ListItemAvatar>
                         <Avatar style={{ width: 26, height: 26, background: isActive ? '#53ab90' : '' }}>{idx}</Avatar>
                       </ListItemAvatar>
@@ -81,7 +77,7 @@ const SelectAppChain = ({
                       <ChevronRight />
                     </ListItem>
                     { idx != appchainList.length - 1 && <Divider /> }
-                    </>
+                    </div>
                   );
                 })
               }

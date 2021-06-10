@@ -4,5 +4,4 @@ interface Window {
   walletConnection: any;
   accountId: string;
   contract: any;
-  relayContract: any;
 } 

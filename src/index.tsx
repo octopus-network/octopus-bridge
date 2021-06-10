@@ -6,9 +6,7 @@ import './index.css';
 import App from './App';
 
 const NETWORK = 'testnet';
-const CONTRACT_NAME = 'dev-1622014475434-1723226';
-
-const RELAY_CONTRACT_NAME = 'oct-relay.testnet';
+const CONTRACT_NAME = 'dev-oct-relay.testnet';
 
 const nearConfig = {
   networkId: NETWORK,
@@ -35,19 +33,11 @@ const initNear = async () => {
     window.walletConnection.account(),
     CONTRACT_NAME,
     {
-      viewMethods: [],
+      viewMethods: ['get_bridge_token', 'get_num_appchains', 'get_appchain', 'get_appchains'],
       changeMethods: []
     }
   );
 
-  window.relayContract = await new Contract(
-    window.walletConnection.account(),
-    RELAY_CONTRACT_NAME,
-    {
-      viewMethods: ['get_bridge_token', 'get_num_appchains', 'get_appchain'],
-      changeMethods: []
-    }
-  );
 } 
 
 initNear()
