@@ -65,11 +65,12 @@ const Transfer = ({
         }))
       );
       const results = await Promise.all(promises);
+      console.log(results);
       // if (results.length) {
       //   setSelectedToken(results[0]);
       // }
       setIsLoading(false);
-      setTokenList(results);
+      setTokenList(results.filter(res => !!res));
     }
     init();
   }, []);
@@ -141,7 +142,7 @@ const Transfer = ({
         {
           receiver_id: bridgeId,
           amount,
-          msg: `lock_token,${appchain.id},${hexAddress}`,
+          msg: `lock_token,${appchain.name},${hexAddress}`,
         },
         BOATLOAD_OF_GAS,
         1

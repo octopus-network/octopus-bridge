@@ -43,8 +43,7 @@ const SelectAppChain = ({
       
       if (appchains && appchains.length) {
         setAppchainList(appchains.map(({ id, status }, idx) => ({
-          id: idx, status,
-          name: id.substr(0, 1).toUpperCase() + id.substr(1)
+          id: idx, status, name: id
         })));
       }
       setIsLoading(false);
