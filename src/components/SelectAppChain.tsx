@@ -65,7 +65,7 @@ const SelectAppChain = ({
             <List>
               {
                 appchainList.map((chain, idx) => {
-                  const isActive = chain.status == 'Active';
+                  const isActive = chain.status == 'Booting';
                   return (
                     <div key={`appchain-${idx}`}>
                     <ListItem button disabled={!isActive} onClick={() => onSelect(chain)}>
