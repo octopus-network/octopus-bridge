@@ -6,7 +6,7 @@ import './index.css';
 import App from './App';
 
 const NETWORK = 'testnet';
-const CONTRACT_NAME = 'dev-oct-relay.testnet';
+const CONTRACT_NAME = 'octopus-relay.testnet';
 
 const nearConfig = {
   networkId: NETWORK,
