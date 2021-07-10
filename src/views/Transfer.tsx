@@ -32,7 +32,7 @@ const useStyles = makeStyles((theme: Theme) =>
       boxShadow: 'rgb(0 0 0 / 1%) 0px 0px 1px, rgb(0 0 0 / 4%) 0px 4px 8px, rgb(0 0 0 / 4%) 0px 16px 24px, rgb(0 0 0 / 1%) 0px 24px 32px',
       marginTop: 30,
       width: '100%',
-      maxWidth: 380,
+      maxWidth: 395,
       boxSizing: 'border-box',
       padding: 20
     }
@@ -290,6 +290,7 @@ const Transfer = () => {
 
   return (
     <>
+      <Typography color="secondary" variant="h5">Transfer asset</Typography>
       <Paper className={classes.form} elevation={0}>
         <Box display="flex" justifyContent="space-between">
           <Button color="default" size="small" 
@@ -373,15 +374,13 @@ const Transfer = () => {
           <Button size="large" style={{ textTransform: 'none' }} 
             onClick={onTransfer}
             variant="contained" color="primary" fullWidth 
-            disabled={!account || isSubmiting || isLoading || (
-              isRedeem && !api
-            )}>
+            disabled={!account || isSubmiting || isLoading || !api}>
             { 
               isSubmiting || isLoading ? 
               <CircularProgress size={26} /> :
               appchainInfo && appchainInfo.status == 'Booting' ?
               account ? (
-                isRedeem && !api ? 'Appchain is not ready' : 'Transfer'
+                !api ? 'Appchain is not ready' : 'Transfer'
               ) : 'Please Login' :
               'Appchain isn\'t active'
             }
