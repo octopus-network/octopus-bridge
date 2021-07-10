@@ -23,21 +23,42 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 );
 
+const tokenContractList = [
+  'test-stable.testnet'
+];
+
 const SelectTokenModal = ({ 
   open, 
   onClose, 
-  tokens, 
   selectedToken,
   onSelectToken 
 }: {
   open: boolean;
   onClose: VoidFunction;
-  tokens: any[];
   selectedToken: any;
   onSelectToken: Function;
 }) => {
   const classes = useStyles();
   const fixedListRef = useRef<FixedSizeList>();
+  
+  const [isLoading, setIsLoading] = useState(false);
+  const [tokens, setTokens] = useState([]);
+
+  useEffect(() => {
+    const init = async () => {
+      setIsLoading(true);
+      const promises = tokenContractList.map(id => (
+        window.contract.get_bridge_token({
+          token_id: id
+        }))
+      );
+      const results = await Promise.all(promises);
+      setIsLoading(false);
+      setTokens(results.filter(res => !!res));
+    }
+    init();
+  }, []);
+
   const onSelect = (token) => {
     onSelectToken(token);
   }
@@ -68,9 +89,8 @@ const SelectTokenModal = ({
   }, [tokens]);
 
   return (
-    <BaseModal open={open} onClose={onClose} title="Select token">
+    <BaseModal open={open} onClose={onClose} title="Select Token">
       <>
-     
       <div style={{ flex: 1, height: '320px' }}>
         <AutoSizer disableWidth>
           {({ height }) => (

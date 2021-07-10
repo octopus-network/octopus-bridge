@@ -4,6 +4,7 @@ import {
   ListItemAvatar, Avatar, Divider 
 } from '@material-ui/core';
 
+import { useNavigate } from 'react-router-dom';
 import { makeStyles, createStyles, Theme } from '@material-ui/core/styles';
 
 import { ChevronRight } from '@material-ui/icons';
@@ -20,14 +21,10 @@ const useStyles = makeStyles((theme: Theme) =>
   }),
 );
 
-const SelectAppChain = ({
-  onSelect
-}: {
-  onSelect: Function;
-}) => {
+const SelectAppChain = () => {
   const classes = useStyles();
   const [isLoading, setIsLoading] = useState(false);
-
+  const navigate = useNavigate();
   const [appchainList, setAppchainList] = useState([]);
 
   useEffect(() => {
@@ -39,11 +36,9 @@ const SelectAppChain = ({
         limit: 20
       });
 
-      console.log(appchains);
-      
       if (appchains && appchains.length) {
         setAppchainList(appchains.map(({ id, status }, idx) => ({
-          id: idx, status, name: id
+          status, id
         })));
       }
       setIsLoading(false);
@@ -64,15 +59,17 @@ const SelectAppChain = ({
           <Paper className={classes.list} elevation={0}>
             <List>
               {
-                appchainList.map((chain, idx) => {
-                  const isActive = chain.status == 'Booting';
+                appchainList.map((appchain, idx) => {
+                  const isActive = appchain.status == 'Booting';
                   return (
                     <div key={`appchain-${idx}`}>
-                    <ListItem button disabled={!isActive} onClick={() => onSelect(chain)}>
+                    <ListItem button disabled={!isActive} onClick={() => navigate(`/${appchain.id}`)}>
                       <ListItemAvatar>
-                        <Avatar style={{ width: 26, height: 26, background: isActive ? '#53ab90' : '' }}>{idx}</Avatar>
+                        <Avatar style={{ width: 32, height: 32, background: isActive ? '#53ab90' : '' }}>
+                          {appchain.id.substr(0,1).toUpperCase()}
+                        </Avatar>
                       </ListItemAvatar>
-                      <ListItemText>{chain.name}</ListItemText>
+                      <ListItemText>{appchain.id}</ListItemText>
                       <ChevronRight />
                     </ListItem>
                     { idx != appchainList.length - 1 && <Divider /> }

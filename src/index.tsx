@@ -28,6 +28,7 @@ const initNear = async () => {
   
   window.walletConnection = new WalletConnection(near, 'octopus_bridge');
   window.accountId = window.walletConnection.getAccountId();
+  window.pjsAccount = window.localStorage.getItem('pjsAccount') || undefined;
 
   window.contract = await new Contract(
     window.walletConnection.account(),
