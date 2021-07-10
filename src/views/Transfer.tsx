@@ -18,7 +18,7 @@ import {
 
 import { makeStyles, createStyles, Theme } from '@material-ui/core/styles';
 import { fromDecimals, toDecimals } from 'utils';
-import { SwapHoriz, ArrowDownward, Person, ChevronLeft, ExpandMore, Close, Poll, Redeem } from '@material-ui/icons';
+import { SwapHoriz, ArrowDownward, Person, ChevronLeft, ExpandMore, Close } from '@material-ui/icons';
 import SelectTokenModal from 'components/SelectTokenModal';
 import AccountModal from 'components/AccountModal';
 import Polling from 'components/Polling';
@@ -232,7 +232,7 @@ const Transfer = () => {
     if (!appchainInfo || appchainInfo.status !== 'Booting') {
       return;
     }
-    setIsAppchainIntializing(true);
+    
     let provider;
     try {
       provider = new WsProvider(appchainInfo.rpc_endpoint);
@@ -248,7 +248,8 @@ const Transfer = () => {
         "TAssetBalance": "u128" 
       } 
     });
-
+    
+    setIsAppchainIntializing(true);
     api.on('connected', () => {
       console.log('appchain connected');
     });
@@ -376,7 +377,7 @@ const Transfer = () => {
             variant="contained" color="primary" fullWidth 
             disabled={!account || isSubmiting || isLoading || !api}>
             { 
-              isSubmiting || isLoading ? 
+              isSubmiting || isLoading || isAppchainInitializing ? 
               <CircularProgress size={26} /> :
               appchainInfo && appchainInfo.status == 'Booting' ?
               account ? (
