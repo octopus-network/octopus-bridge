@@ -42,8 +42,10 @@ const useStyles = makeStyles((theme: Theme) =>
 const BOATLOAD_OF_GAS = new BigNumber(3).times(10 ** 14).toFixed();
 
 const tokenId2AssetId = {
-  'test-stable.testnet': 0
+  'usdc.testnet': 0
 }
+
+const localSelectedToken = window.localStorage.getItem('selectedToken');
 
 const Transfer = () => {
   const { appchain } = useParams();
@@ -53,7 +55,10 @@ const Transfer = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [appchainInfo, setAppchainInfo] = useState<any>(undefined);
   const [errors, setErrors] = useState<any>({});
-  const [selectedToken, setSelectedToken] = useState<any>();
+  const [selectedToken, setSelectedToken] = useState<any>(
+    localSelectedToken ? JSON.parse(localSelectedToken) : null
+  );
+
   const [tokenBalance, setTokenBalance] = useState('0');
   const [selectTokenModalOpen, setSelectTokenModalOpen] = useState(false);
   const [selectedTokenContract, setSelectedTokenContract] = useState<any>();
@@ -134,6 +139,7 @@ const Transfer = () => {
 
   const onSelectToken = (token) => {
     setSelectedToken(token);
+    window.localStorage.setItem('selectedToken', JSON.stringify(token));
     setSelectTokenModalOpen(false);
   }
 
@@ -161,20 +167,27 @@ const Transfer = () => {
       const bridgeId = window.walletConnection._near.config.contractName;
 
       let amount = toDecimals(transferAmount, selectedToken.decimals);
-      await selectedTokenContract.ft_transfer_call(
-        {
-          receiver_id: bridgeId,
-          amount,
-          msg: `lock_token,${appchain},${hexAddress}`,
-        },
-        BOATLOAD_OF_GAS,
-        1
-      );
+      try {
 
-      setTimeout(() => {
+      
+        await selectedTokenContract.ft_transfer_call(
+          {
+            receiver_id: bridgeId,
+            amount,
+            msg: `lock_token,${appchain},${hexAddress}`,
+          },
+          BOATLOAD_OF_GAS,
+          1
+        );
+        setTimeout(() => {
+          setIsSubmiting(false);
+          enqueueSnackbar('Send transaction success!', { variant: 'success' });
+        }, 1000);
+      } catch(err) {
         setIsSubmiting(false);
-        enqueueSnackbar('Send transaction success!', { variant: 'success' });
-      }, 1000);
+        enqueueSnackbar(err.message, { variant: 'error' });
+      }
+      
     } catch (err) {
       // enqueueSnackbar('Send transaction error!', { variant: 'error' });
       console.error(err);
@@ -297,6 +310,7 @@ const Transfer = () => {
           <Button color="default" size="small" 
             style={{ textTransform: 'none' }} 
             onClick={onBack}><ChevronLeft /> {appchain}</Button>
+          
           <Polling api={api} />
         </Box>
         

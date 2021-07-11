@@ -24,7 +24,7 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 const tokenContractList = [
-  'test-stable.testnet'
+  'usdc.testnet'
 ];
 
 const SelectTokenModal = ({ 
