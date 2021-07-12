@@ -71,7 +71,7 @@ const Transfer = () => {
   const [accountModalOpen, setAccountModalOpen] = useState(false);
   const [account, setAccount] = useState<string|undefined>(undefined);
   const [isRedeem, setIsRedeem] = useState(false);
-  const [isAppchainInitializing, setIsAppchainIntializing] = useState(false);
+  const [isAppchainInitializing, setIsAppchainIntializing] = useState(true);
   const [api, setApi] = useState<any>();
 
   const amountRef = useRef();
@@ -117,6 +117,7 @@ const Transfer = () => {
   }, [selectedToken]);
 
   useEffect(() => {
+    let unsubscribe;
     if (!isRedeem) {
       if (!selectedTokenContract || !window.accountId) return;
       selectedTokenContract
@@ -124,6 +125,7 @@ const Transfer = () => {
         .then((data) => {
           setTokenBalance(fromDecimals(data, selectedToken.decimals).toFixed(2));
         });
+      unsubscribe = null;
     } else {
       if (!api || !selectedToken) return;
       let assetId = tokenId2AssetId[selectedToken.token_id];
@@ -131,9 +133,11 @@ const Transfer = () => {
       api.query.assets.account(assetId, window.pjsAccount, (res) => {
         const { balance } = res.toJSON();
         setTokenBalance(fromDecimals(balance, selectedToken.decimals).toFixed(2));
-      });
+      }).then(unsub => unsubscribe = unsub);
       
     }
+
+    return () => unsubscribe && unsubscribe();
     
   }, [selectedToken, selectedTokenContract, isRedeem, window.accountId, window.pjsAccount, api]);
 
@@ -306,12 +310,16 @@ const Transfer = () => {
     <>
       <Typography color="secondary" variant="h5">Transfer asset</Typography>
       <Paper className={classes.form} elevation={0}>
-        <Box display="flex" justifyContent="space-between">
+        <Box display="flex" justifyContent="space-between" alignItems="center">
           <Button color="default" size="small" 
             style={{ textTransform: 'none' }} 
             onClick={onBack}><ChevronLeft /> {appchain}</Button>
           
-          <Polling api={api} />
+          {
+            isAppchainInitializing ?
+            <CircularProgress size={16} /> :
+            <Polling api={api} />
+          }
         </Box>
         
         <div style={{ marginTop: 20 }} />
@@ -389,9 +397,9 @@ const Transfer = () => {
           <Button size="large" style={{ textTransform: 'none' }} 
             onClick={onTransfer}
             variant="contained" color="primary" fullWidth 
-            disabled={!account || isSubmiting || isLoading || !api}>
+            disabled={!account || isSubmiting || !api}>
             { 
-              isSubmiting || isLoading || isAppchainInitializing ? 
+              isSubmiting ? 
               <CircularProgress size={26} /> :
               appchainInfo && appchainInfo.status == 'Booting' ?
               account ? (
