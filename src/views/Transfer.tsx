@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { Contract } from 'near-api-js';
 
 import { decodeAddress } from '@polkadot/util-crypto';
-import { stringToHex, u8aToHex } from '@polkadot/util';
+import { stringToHex, u8aToHex, formatBalance } from '@polkadot/util';
 import { useSnackbar } from 'notistack';
 import { ApiPromise, WsProvider } from '@polkadot/api';
 import { web3FromSource, web3Enable } from '@polkadot/extension-dapp';
@@ -62,6 +62,7 @@ const Transfer = () => {
   const [tokenBalance, setTokenBalance] = useState('0');
   const [selectTokenModalOpen, setSelectTokenModalOpen] = useState(false);
   const [selectedTokenContract, setSelectedTokenContract] = useState<any>();
+  const [nativeToken, setNativeToken] = useState('');
   
   const [transferAmount, setTransferAmount] = useState(0);
   const [isSubmiting, setIsSubmiting] = useState(false);
@@ -87,14 +88,21 @@ const Transfer = () => {
 
   useEffect(() => {
     setIsLoading(true);
-    window.contract.get_appchain({
-      appchain_id: appchain
-    }).then(info => {
-      console.log(info);
+    Promise.all([
+      window.contract.get_appchain({
+        appchain_id: appchain
+      }),
+      window.contract.get_native_token({
+        appchain_id: appchain
+      })
+    ]).then(([info, nativeToken]) => {
+      console.log(info, nativeToken);
       setAppchainInfo(info);
+      setNativeToken(nativeToken);
     }).finally(() => {
       setIsLoading(false);
     });
+   
   }, [appchain]);
 
   useEffect(() => {
@@ -118,6 +126,8 @@ const Transfer = () => {
 
   useEffect(() => {
     let unsubscribe;
+    setTokenBalance('0.00');
+
     if (!isRedeem) {
       if (!selectedTokenContract || !window.accountId) return;
       selectedTokenContract
@@ -129,12 +139,18 @@ const Transfer = () => {
     } else {
       if (!api || !selectedToken) return;
       let assetId = tokenId2AssetId[selectedToken.token_id];
-      if (assetId === undefined) return;
-      api.query.assets.account(assetId, window.pjsAccount, (res) => {
-        const { balance } = res.toJSON();
-        setTokenBalance(fromDecimals(balance, selectedToken.decimals).toFixed(2));
-      }).then(unsub => unsubscribe = unsub);
-      
+      console.log(selectedToken);
+      if (assetId === undefined) {
+        api.derive.balances.all([window.pjsAccount], (balance) => {
+          setTokenBalance(fromDecimals(balance.freeBalance, selectedToken.decimals).toFixed(2));
+        }).then(unsub => unsubscribe = unsub);
+      } else {
+        api.query.assets.account(assetId, window.pjsAccount, (res) => {
+          const { balance } = res.toJSON();
+          setTokenBalance(fromDecimals(balance, selectedToken.decimals).toFixed(2));
+        }).then(unsub => unsubscribe = unsub);
+      }
+ 
     }
 
     return () => unsubscribe && unsubscribe();
@@ -167,13 +183,11 @@ const Transfer = () => {
     try {
       
       setIsSubmiting(true);
-
       const bridgeId = window.walletConnection._near.config.contractName;
 
       let amount = toDecimals(transferAmount, selectedToken.decimals);
       try {
 
-      
         await selectedTokenContract.ft_transfer_call(
           {
             receiver_id: bridgeId,
@@ -252,8 +266,8 @@ const Transfer = () => {
     
     let provider;
     try {
-      provider = new WsProvider(appchainInfo.rpc_endpoint);
-      // provider = new WsProvider('ws://127.0.0.1:9944');
+      // provider = new WsProvider(appchainInfo.rpc_endpoint);
+      provider = new WsProvider('ws://127.0.0.1:9944');
     } catch(err) {
       console.error(err);
       return;
@@ -411,8 +425,8 @@ const Transfer = () => {
           </Button>
         </ListItem>
       </Paper>
-      <SelectTokenModal open={selectTokenModalOpen} selectedToken={selectedToken}
-        onClose={() => setSelectTokenModalOpen(a => !a)} onSelectToken={onSelectToken} />
+      <SelectTokenModal open={selectTokenModalOpen} selectedToken={selectedToken} onSelectToken={onSelectToken}
+        nativeToken={nativeToken} onClose={() => setSelectTokenModalOpen(a => !a)} />
       <AccountModal open={accountModalOpen} onClose={() => setAccountModalOpen(false)} isRedeem={isRedeem} 
         onChange={onAccountChange} />
     </>

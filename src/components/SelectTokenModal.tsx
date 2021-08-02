@@ -24,18 +24,20 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 const tokenContractList = [
-  'usdc.testnet'
+  'usdc.testnet',
 ];
 
 const SelectTokenModal = ({ 
   open, 
   onClose, 
   selectedToken,
+  nativeToken,
   onSelectToken 
 }: {
   open: boolean;
   onClose: VoidFunction;
   selectedToken: any;
+  nativeToken: string;
   onSelectToken: Function;
 }) => {
   const classes = useStyles();
@@ -43,11 +45,12 @@ const SelectTokenModal = ({
   
   const [isLoading, setIsLoading] = useState(false);
   const [tokens, setTokens] = useState([]);
-
+  
   useEffect(() => {
     const init = async () => {
       setIsLoading(true);
-      const promises = tokenContractList.map(id => (
+      
+      const promises = [nativeToken].concat(tokenContractList).map(id => (
         window.contract.get_bridge_token({
           token_id: id
         }))
@@ -56,8 +59,10 @@ const SelectTokenModal = ({
       setIsLoading(false);
       setTokens(results.filter(res => !!res));
     }
-    init();
-  }, []);
+    if (nativeToken) {
+      init();
+    }
+  }, [nativeToken]);
 
   const onSelect = (token) => {
     onSelectToken(token);
@@ -86,7 +91,7 @@ const SelectTokenModal = ({
         </div>
       </MenuItem>
     );
-  }, [tokens]);
+  }, [tokens, selectedToken]);
 
   return (
     <BaseModal open={open} onClose={onClose} title="Select Token">
