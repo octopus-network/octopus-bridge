@@ -4,6 +4,7 @@ import { FixedSizeList } from 'react-window';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { MenuItem, Typography } from '@material-ui/core';
 import { makeStyles, Theme, createStyles, styled } from '@material-ui/core/styles';
+import { Contract } from "near-api-js";
 
 import BaseModal from 'components/BaseModal';
 
@@ -45,23 +46,45 @@ const SelectTokenModal = ({
   
   const [isLoading, setIsLoading] = useState(false);
   const [tokens, setTokens] = useState([]);
-  
+  const [nativeTokenInfo, setNativeTokenInfo] = useState<any>();
+ 
   useEffect(() => {
     const init = async () => {
       setIsLoading(true);
       
-      const promises = [nativeToken].concat(tokenContractList).map(id => (
+      let nativeTokenInfo;
+      if (nativeToken) {
+        const nativeTokenContract: any = new Contract(
+          window.walletConnection.account(),
+          nativeToken,
+          {
+            viewMethods: ['ft_metadata'],
+            changeMethods: []
+          }
+        );
+        nativeTokenInfo = await nativeTokenContract.ft_metadata();
+      }
+
+      const promises = tokenContractList.map(id => (
         window.contract.get_bridge_token({
           token_id: id
         }))
       );
-      const results = await Promise.all(promises);
+      try {
+        const results = await Promise.all(promises);
+        const tmpList = results.filter(res => !!res);
+        setTokens(nativeTokenInfo ? [{
+          token_id: nativeToken,
+          symbol: nativeTokenInfo.symbol,
+          decimals: nativeTokenInfo.decimals
+        }].concat(tmpList) : tmpList);
+      } catch(e) {
+        console.log(e);
+      }
+      
       setIsLoading(false);
-      setTokens(results.filter(res => !!res));
     }
-    if (nativeToken) {
-      init();
-    }
+    init();
   }, [nativeToken]);
 
   const onSelect = (token) => {

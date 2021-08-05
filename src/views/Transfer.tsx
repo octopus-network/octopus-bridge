@@ -40,6 +40,7 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 const BOATLOAD_OF_GAS = new BigNumber(3).times(10 ** 14).toFixed();
+const MINIMUM_DEPOSIT = new BigNumber(125).times(10 ** 19).toFixed();
 
 const tokenId2AssetId = {
   'usdc.testnet': 0
@@ -130,9 +131,11 @@ const Transfer = () => {
 
     if (!isRedeem) {
       if (!selectedTokenContract || !window.accountId) return;
+      console.log(selectedToken);
       selectedTokenContract
         .ft_balance_of({ account_id: window.accountId })
         .then((data) => {
+          console.log(data);
           setTokenBalance(fromDecimals(data, selectedToken.decimals).toFixed(2));
         });
       unsubscribe = null;
@@ -186,23 +189,37 @@ const Transfer = () => {
       const bridgeId = window.walletConnection._near.config.contractName;
 
       let amount = toDecimals(transferAmount, selectedToken.decimals);
+      console.log(new BigNumber(amount).toNumber());
       try {
-
-        await selectedTokenContract.ft_transfer_call(
-          {
-            receiver_id: bridgeId,
-            amount,
-            msg: `lock_token,${appchain},${hexAddress}`,
-          },
-          BOATLOAD_OF_GAS,
-          1
-        );
+        if (selectedToken.token_id == nativeToken) {
+          await window.contract.burn_native_token(
+            {
+              appchain_id: appchain,
+              receiver: hexAddress,
+              amount: new BigNumber(amount).toNumber()
+            }, 
+            BOATLOAD_OF_GAS,
+            MINIMUM_DEPOSIT
+          );
+        } else {
+          await selectedTokenContract.ft_transfer_call(
+            {
+              receiver_id: bridgeId,
+              amount,
+              msg: `lock_token,${appchain},${hexAddress}`,
+            },
+            BOATLOAD_OF_GAS,
+            1
+          );
+        }
+        
         setTimeout(() => {
           setIsSubmiting(false);
           enqueueSnackbar('Send transaction success!', { variant: 'success' });
         }, 1000);
       } catch(err) {
         setIsSubmiting(false);
+        console.log(err);
         enqueueSnackbar(err.message, { variant: 'error' });
       }
       
@@ -222,19 +239,31 @@ const Transfer = () => {
     }
 
     let hexAddress = stringToHex(targetAddress);
-    
-    let assetId = tokenId2AssetId[selectedToken.token_id];
+
+    console.log(hexAddress);
+
+    let isNativeToken = selectedToken.token_id == nativeToken;
+    let assetId;
+
+    if (!isNativeToken) {
+      assetId = tokenId2AssetId[selectedToken.token_id];
+      if (!assetId) {
+        return;
+      }
+    }
+
     let amount = toDecimals(transferAmount, selectedToken.decimals);
-    if (assetId === undefined) return;
+    
     setIsSubmiting(true);
 
     await web3Enable('Octopus Bridge');
     const injected = await web3FromSource('polkadot-js');
     api.setSigner(injected.signer);
-
-    await api.tx.octopusAppchain
-      .burn(assetId, hexAddress, amount)
-      .signAndSend(account, (res) => {
+    await (
+      isNativeToken ?
+      api.tx.octopusAppchain.lock(hexAddress, amount) :
+      api.tx.octopusAppchain.burn(assetId, hexAddress, amount)
+    ).signAndSend(account, (res) => {
         console.log(res);
         if (res.isFinalized) {
           setIsSubmiting(false);
@@ -266,8 +295,8 @@ const Transfer = () => {
     
     let provider;
     try {
-      // provider = new WsProvider(appchainInfo.rpc_endpoint);
-      provider = new WsProvider('ws://127.0.0.1:9944');
+      provider = new WsProvider(appchainInfo.rpc_endpoint);
+      // provider = new WsProvider('ws://127.0.0.1:9944');
     } catch(err) {
       console.error(err);
       return;
