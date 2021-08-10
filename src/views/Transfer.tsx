@@ -245,9 +245,11 @@ const Transfer = () => {
     let isNativeToken = selectedToken.token_id == nativeToken;
     let assetId;
 
+
     if (!isNativeToken) {
       assetId = tokenId2AssetId[selectedToken.token_id];
-      if (!assetId) {
+     
+      if (assetId === undefined) {
         return;
       }
     }
@@ -262,7 +264,7 @@ const Transfer = () => {
     await (
       isNativeToken ?
       api.tx.octopusAppchain.lock(hexAddress, amount) :
-      api.tx.octopusAppchain.burn(assetId, hexAddress, amount)
+      api.tx.octopusAppchain.burnAsset(assetId, hexAddress, amount)
     ).signAndSend(account, (res) => {
         console.log(res);
         if (res.isFinalized) {
@@ -295,8 +297,8 @@ const Transfer = () => {
     
     let provider;
     try {
-      provider = new WsProvider(appchainInfo.rpc_endpoint);
-      // provider = new WsProvider('ws://127.0.0.1:9944');
+      // provider = new WsProvider(appchainInfo.rpc_endpoint);
+      provider = new WsProvider('wss://gateway.testnet.octopus.network/barnacle/c2b940112e5dfee04d8569bc00412bba');
     } catch(err) {
       console.error(err);
       return;
