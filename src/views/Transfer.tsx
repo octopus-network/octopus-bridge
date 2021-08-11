@@ -297,8 +297,8 @@ const Transfer = () => {
     
     let provider;
     try {
-      // provider = new WsProvider(appchainInfo.rpc_endpoint);
-      provider = new WsProvider('wss://gateway.testnet.octopus.network/barnacle/c2b940112e5dfee04d8569bc00412bba');
+      provider = new WsProvider(appchainInfo.rpc_endpoint);
+      
     } catch(err) {
       console.error(err);
       return;
