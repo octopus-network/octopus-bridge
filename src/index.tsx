@@ -6,7 +6,7 @@ import './index.css';
 import App from './App';
 
 const NETWORK = process.env.REACT_APP_OCT_NETWORK || 'testnet';
-const CONTRACT_NAME = process.env.REACT_APP_OCT_RELAY_CONTRACT_NAME || 'dev-1628556396816-8582900';
+const CONTRACT_NAME = process.env.REACT_APP_OCT_RELAY_CONTRACT_NAME || 'dev-oct-relay.testnet';
 
 const nearConfig = {
   networkId: NETWORK,

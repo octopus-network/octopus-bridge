@@ -189,7 +189,7 @@ const Transfer = () => {
       const bridgeId = window.walletConnection._near.config.contractName;
 
       let amount = toDecimals(transferAmount, selectedToken.decimals);
-      console.log(new BigNumber(amount).toNumber());
+      
       try {
         if (selectedToken.token_id == nativeToken) {
           await window.contract.burn_native_token(
@@ -214,8 +214,9 @@ const Transfer = () => {
         
         setTimeout(() => {
           setIsSubmiting(false);
+          window.location.reload();
           enqueueSnackbar('Send transaction success!', { variant: 'success' });
-        }, 1000);
+        }, 300);
       } catch(err) {
         setIsSubmiting(false);
         console.log(err);
