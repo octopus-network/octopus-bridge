@@ -196,7 +196,7 @@ const Transfer = () => {
             {
               appchain_id: appchain,
               receiver: hexAddress,
-              amount: new BigNumber(amount).toNumber()
+              amount: new BigNumber(amount).toFixed()
             }, 
             BOATLOAD_OF_GAS
           );
