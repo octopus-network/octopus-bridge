@@ -198,7 +198,8 @@ const Transfer = () => {
               receiver: hexAddress,
               amount: new BigNumber(amount).toFixed()
             }, 
-            BOATLOAD_OF_GAS
+            BOATLOAD_OF_GAS,
+            1
           );
         } else {
           await selectedTokenContract.ft_transfer_call(
