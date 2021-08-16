@@ -278,7 +278,7 @@ const Transfer = () => {
           console.error(res);
         }
       }).catch(err => {
-        // enqueueSnackbar(err.message, { variant: 'error' });
+        enqueueSnackbar(err.message, { variant: 'error' });
         setIsSubmiting(false);
       });
   }
