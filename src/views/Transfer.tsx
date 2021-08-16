@@ -72,7 +72,9 @@ const Transfer = () => {
 
   const [accountModalOpen, setAccountModalOpen] = useState(false);
   const [account, setAccount] = useState<string|undefined>(undefined);
-  const [isRedeem, setIsRedeem] = useState(false);
+  const [isRedeem, setIsRedeem] = useState(
+    (window.localStorage.getItem('isRedeem') || '0') === '1'
+  );
   const [isAppchainInitializing, setIsAppchainIntializing] = useState(true);
   const [api, setApi] = useState<any>();
 
@@ -106,14 +108,32 @@ const Transfer = () => {
    
   }, [appchain]);
 
-  useEffect(() => {
-    const localRedeem = window.localStorage.getItem('isRedeem') || '0';
-    setIsRedeem(localRedeem === '1');
-  }, []);
+  const unsubscribe = useRef<any>();
+
+  const subscribe = (api, assetId) => {
+    if (unsubscribe.current) {
+      console.log('unsubscribe');
+      unsubscribe.current();
+    } 
+    if (assetId === undefined) {
+      api.derive.balances.all(window.pjsAccount, (balance) => {
+        setTokenBalance(
+          fromDecimals(balance.freeBalance, selectedToken.decimals).toFixed(2)
+        );
+      }).then(unsub => unsubscribe.current = unsub);
+    } else {
+      api.query.assets.account(assetId, window.pjsAccount, (res) => {
+        const { balance } = res.toJSON();
+        setTokenBalance(
+          fromDecimals(balance, selectedToken.decimals).toFixed(2)
+        );
+      }).then(unsub => unsubscribe.current = unsub);
+    }
+  }
 
   useEffect(() => {
     if (!selectedToken) return;
-    const contract = new Contract(
+    const contract: any = new Contract(
       window.walletConnection.account(),
       selectedToken.token_id,
       {
@@ -123,42 +143,23 @@ const Transfer = () => {
     );
 
     setSelectedTokenContract(contract);
-  }, [selectedToken]);
+    setTokenBalance('');
 
-  useEffect(() => {
-    let unsubscribe;
-    setTokenBalance('0.00');
+    console.log(isRedeem);
 
     if (!isRedeem) {
-      if (!selectedTokenContract || !window.accountId) return;
-      console.log(selectedToken);
-      selectedTokenContract
+      contract
         .ft_balance_of({ account_id: window.accountId })
-        .then((data) => {
-          console.log(data);
-          setTokenBalance(fromDecimals(data, selectedToken.decimals).toFixed(2));
+        .then(balance => {
+          setTokenBalance(
+            fromDecimals(balance, selectedToken.decimals).toFixed(2)
+          );
         });
-      unsubscribe = null;
-    } else {
-      if (!api || !selectedToken) return;
+    } else if (api) {
       let assetId = tokenId2AssetId[selectedToken.token_id];
-      console.log(selectedToken);
-      if (assetId === undefined) {
-        api.derive.balances.all([window.pjsAccount], (balance) => {
-          setTokenBalance(fromDecimals(balance.freeBalance, selectedToken.decimals).toFixed(2));
-        }).then(unsub => unsubscribe = unsub);
-      } else {
-        api.query.assets.account(assetId, window.pjsAccount, (res) => {
-          const { balance } = res.toJSON();
-          setTokenBalance(fromDecimals(balance, selectedToken.decimals).toFixed(2));
-        }).then(unsub => unsubscribe = unsub);
-      }
- 
+      subscribe(api, assetId);
     }
-
-    return () => unsubscribe && unsubscribe();
-    
-  }, [selectedToken, selectedTokenContract, isRedeem, window.accountId, window.pjsAccount, api]);
+  }, [selectedToken, isRedeem, api]);
 
   const onSelectToken = (token) => {
     setSelectedToken(token);
@@ -221,7 +222,7 @@ const Transfer = () => {
       } catch(err) {
         setIsSubmiting(false);
         console.log(err);
-        enqueueSnackbar(err.message, { variant: 'error' });
+        // enqueueSnackbar(err.message, { variant: 'error' });
       }
       
     } catch (err) {
@@ -277,8 +278,7 @@ const Transfer = () => {
           console.error(res);
         }
       }).catch(err => {
-        console.error('hehe', err);
-        enqueueSnackbar(err.message, { variant: 'error' });
+        // enqueueSnackbar(err.message, { variant: 'error' });
         setIsSubmiting(false);
       });
   }
@@ -412,8 +412,13 @@ const Transfer = () => {
                       </div>
                       {
                         selectedTokenContract && 
-                        <Typography display="block" variant="caption" 
-                          style={{ color: '#9c9c9c', lineHeight: 1.2 }}>{tokenBalance}</Typography>
+                        (
+                          tokenBalance ?
+                          <Typography display="block" variant="caption" 
+                            style={{ color: '#9c9c9c', lineHeight: 1.2 }}>{tokenBalance}</Typography> :
+                          <CircularProgress size={12} />
+                        )
+                        
                       }
                     </ListItem>
                   </InputAdornment>
