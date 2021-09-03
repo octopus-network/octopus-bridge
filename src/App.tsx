@@ -1,11 +1,8 @@
-import { useState } from 'react';
 import { SnackbarProvider } from 'notistack';
 import { 
-  IconButton, Typography,
-  AppBar, Toolbar, createMuiTheme, Button, Box, ThemeProvider
+  Typography, AppBar, Toolbar, createMuiTheme, Button, Box, ThemeProvider
 } from '@material-ui/core';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { PowerSettingsNew } from '@material-ui/icons';
 import { makeStyles, createStyles, Theme } from '@material-ui/core/styles';
 
 import SelectAppChain from 'views/SelectAppChain';
