@@ -2,6 +2,7 @@ import { SnackbarProvider } from 'notistack';
 import { 
   Typography, AppBar, Toolbar, createMuiTheme, Button, Box, ThemeProvider
 } from '@material-ui/core';
+import { Autorenew } from '@material-ui/icons';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { makeStyles, createStyles, Theme } from '@material-ui/core/styles';
 
@@ -66,7 +67,7 @@ const App = () => {
         <div style={{ 
           height: '100vh'
         }}>
-          <AppBar position="fixed" className={classes.header} elevation={0}>
+          {/* <AppBar position="fixed" className={classes.header} elevation={0}>
             <Toolbar>
               <Box>
                 <img src={logo} height={64} />
@@ -74,16 +75,22 @@ const App = () => {
               <div style={{ flexGrow: 1 }} />
            
             </Toolbar>
-          </AppBar>
+          </AppBar> */}
           <div className={classes.content}>
-            <Typography variant="h4" display="inline">Octopus Bridge</Typography>
+            <Autorenew style={{ fontSize: '64px', color: '#6c6c6c', marginTop: 30 }} />
+            <Typography variant="h5" display="inline" style={{ 
+              marginTop: 30, textShadow: '0 0 1px #fff', color: '#3c3c3c'
+            }}>
+              Upgrading Bridge
+            </Typography>
+            {/* <Typography variant="h4" display="inline">Octopus Bridge</Typography>
             <div style={{ marginTop: 50 }} />
             <Router>
               <Routes>
                 <Route path='' element={<SelectAppChain />} />
                 <Route path='/:appchain' element={<Transfer />} />
               </Routes>
-            </Router>
+            </Router> */}
           </div>
         </div>
       </ThemeProvider>
